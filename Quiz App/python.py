@@ -33,7 +33,7 @@ def preview_data(data, num_rows=5):
         if isinstance(data, list):
             preview = "\n".join([str(row) for row in data[:num_rows]])
         elif isinstance(data, dict):
-            preview = json.dumps(data, indent=4)[:num_rows * 100]
+            preview = json.dumps(data, indent=2)[:num_rows * 100] + "..." if len(json.dumps(data)) > num_rows * 100 else json.dumps(data, indent=2)
         else:
             preview = "Unsupported data format for preview."
         messagebox.showinfo("Preview", preview)
@@ -51,7 +51,7 @@ def convert_file(data, output_format, output_path):
                     writer.writerows(data)
                 else:
                     raise ValueError("Data format not suitable for CSV conversion.")
-        elif output_format == 'excel':
+        elif output_format == 'xlsx':
             workbook = Workbook()
             sheet = workbook.active
             if isinstance(data, list):
@@ -71,7 +71,7 @@ def convert_file(data, output_format, output_path):
 # GUI Setup
 def file_conversion_tool_gui():
     def load_input_file():
-        file_path = filedialog.askopenfilename(filetypes=[("All Files", "."),
+        file_path = filedialog.askopenfilename(filetypes=[("All Files", "*.*"),
                                                           ("CSV Files", "*.csv"),
                                                           ("Excel Files", "*.xlsx"),
                                                           ("JSON Files", "*.json")])
@@ -79,11 +79,13 @@ def file_conversion_tool_gui():
             input_file_var.set(file_path)
             global data
             data = load_file(file_path)
-            if data:
+            if data is not None:
                 preview_button.config(state="normal")
 
     def save_output_file():
-        file_path = filedialog.asksaveasfilename(defaultextension=f".{output_format_var.get()}",
+        selected_format = output_format_var.get()
+        extension_map = {"csv": ".csv", "xlsx": ".xlsx", "json": ".json"}
+        file_path = filedialog.asksaveasfilename(defaultextension=extension_map[selected_format],
                                                  filetypes=[("CSV Files", "*.csv"),
                                                             ("Excel Files", "*.xlsx"),
                                                             ("JSON Files", "*.json")])
@@ -91,7 +93,7 @@ def file_conversion_tool_gui():
             output_file_var.set(file_path)
 
     def convert_file_gui():
-        if not data:
+        if data is None:
             messagebox.showerror("Error", "No data loaded. Please load a file first.")
             return
         output_format = output_format_var.get()
@@ -120,20 +122,4 @@ def file_conversion_tool_gui():
     preview_button.grid(row=1, column=1, padx=10, pady=10)
 
     # Output Format
-    Label(root, text="Output Format:").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-    OptionMenu(root, output_format_var, "csv", "excel", "json").grid(row=2, column=1, padx=10, pady=10, sticky="w")
-
-    # Output File
-    Label(root, text="Output File:").grid(row=3, column=0, padx=10, pady=10, sticky="w")
-    Label(root, textvariable=output_file_var, relief="solid", width=40).grid(row=3, column=1, padx=10, pady=10)
-    Button(root, text="Save As", command=save_output_file).grid(row=3, column=2, padx=10, pady=10)
-
-    # Convert Button
-    Button(root, text="Convert", command=convert_file_gui).grid(row=4, column=1, pady=20)
-
-    root.mainloop()
-
-
-# Running the GUI
-if _name_ == "_main_":
-    file_conversion_tool_gui()
+    Label(root, text="Output Format:").
